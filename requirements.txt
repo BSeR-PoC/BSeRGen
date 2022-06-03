@@ -1,0 +1,4 @@
+fhir.resources>=6.2.2
+FHIRGenerator>=0.1.3
+orjson>=3.6.8
+pytest>=7.1.1

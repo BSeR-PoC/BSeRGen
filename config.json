@@ -1,0 +1,64 @@
+{
+    "recordCount": 10,
+    "startDate": "01-01-2022",
+    "deathDateRange": [-7, -1],
+    "patient": {
+        "ageMin": 18,
+        "ageMax": 76,
+        "genderMFOU": [
+            47,
+            47,
+            1,
+            5
+        ]
+    },
+    "scenario": {
+        "causeOfDeathPathway": [
+            "Head Injury",
+            "Concussion",
+            "Fell Asleep at Wheel of Car",
+            "Car Wreck"
+        ],
+        "contributingConditions": [
+            "Diabetes"
+        ],
+        "manner": "",
+        "howOccurred": ""
+    },
+    "causeOfDeathList": [
+        "blow to the head",
+        "stolen kidney",
+        "some sort of fungus",
+        "unexploded ordinance",
+        "Fred",
+        "scared watching horror movies",
+        "mercury poisoning",
+        "miner's lung",
+        "premature autopsy",
+        "alien abduction"
+    ],
+    "contributingConditionList": [
+        "blurry brain holes",
+        "previous pirate raid",
+        "old football injury",
+        "unstable biomass",
+        "Fred",
+        "working with really big bees",
+        "super gout",
+        "ancient curse",
+        "modern curse",
+        "future curse",
+        "too many vitamins",
+        "just generally not likable"
+    ],
+    "howDeathInjuryOccurredList": [
+        "was being haunted",
+        "ingested all sorts of stuff",
+        "wind surfing",
+        "regular surfing (not wind)",
+        "apple picking",
+        "attended an overly enthusiastic murder mystery party",
+        "being a jerk to Fred",
+        "attending a talk show taping"
+    ]
+}
