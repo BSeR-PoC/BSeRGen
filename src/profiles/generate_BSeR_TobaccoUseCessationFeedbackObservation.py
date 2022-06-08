@@ -1,7 +1,13 @@
 from fhirgenerator.resources.r4.observation import generateObservation
 from fhir.resources.observation import Observation
+from enum import Enum
 
-def generate_BSeR_EducationLevel(patient_id, start_date, days):
+class Type(Enum):
+    Specific_Patient_Counseling_Session = 1
+    Time_Since_Stopped_Smoking = 2
+    Negotatied_Date_For_Cessation_Of_Smoking = 3
+
+def generate_BSeR_TobaccoUseCessationFeedbackObservation(type: Type, patient_id, start_date, days):
     resource_detail = {}
     resource_detail["codes"] = [{'code': '80913-7', 'system': 'http://loinc.org'}]
     resource_detail["profile"] = ["http://hl7.org/fhir/us/bser/StructureDefinition/BSeR-EducationLevel"]
