@@ -14,7 +14,6 @@ def generate_BSeR_ReferralFeedbackComposition(patient_id: str, practitioner_role
     composition["meta"]["profile"] = [ "http://hl7.org/fhir/us/bser/StructureDefinition/BSeR-ReferralFeedbackComposition" ]
     composition["status"] = "final"
     
-    ### TODO: BELOW!!!
     composition["subject"] = { "reference": f"Patient/{patient_id}"}
     composition["author"] = [{ "reference": f"PractitionerRole/{practitioner_role_id}"}]
     composition["title"] = "BSeR Referral Feedback Composition"
