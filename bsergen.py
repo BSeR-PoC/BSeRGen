@@ -1,28 +1,16 @@
 from src.helpers.bundle import insertComposition
-from src.profiles.generate_BSeR_ReferralActivityStatus import generate_BSeR_ReferralActivityStatus
-from src.profiles.generate_BSeR_ReferralFeedbackDocumentBundle import generate_BSeR_ReferralFeedbackDocumentBundle
-from src.profiles.generate_BSeR_TobaccoUseCessationReferralFeedbackSupportingInformation import addEntries, addEntry, generate_BSeR_TobaccoUseCessationReferralFeedbackSupportingInformation
-from src.profiles.generate_BSeR_TobaccoUseCessationFeedbackObservation import generate_BSeR_TobaccoUseCessationFeedbackObservation
-from src.profiles.generate_BSeR_EducationLevel import generate_BSeR_EducationLevel
-from src.profiles.generate_BSeR_ReferralFeedbackComposition import generate_BSeR_ReferralFeedbackComposition, generateCompositionSection, addSection
-from src.profiles.generate_BSeR_ReferralRecipientPractitionerRole import generate_BSeR_ReferralRecipientPractitionerRole
-from src.profiles.generate_BSeR_Coverage import generate_BSeR_Coverage
+import src.generate as gen
 from src.cannonicalUrls import CodeSystem_bser_codes
+from src.helpers.bundle import addEntries, addEntry, insertComposition
+from src.helpers.composition import generateCompositionSection, addSection
 from src.helpers.patient import generatePatient
 from src.helpers.relatedperson import generateRelatedPersonFromPatient
-import orjson, os, json, random, argparse, inquirer
+import orjson, os, json, inquirer
 from fhirgenerator.helpers.helpers import default
-from src.helpers.bser_practitioner import get_BSeR_Practitioner
+from src.helpers.bser_practitioner import get_BSeR_Recipient_Practitioner, get_BSeR_Initiator_Practitioner
+from src.constants import bundle_type_referral, bundle_type_feedback, bundle_type_both, use_case_arthritis, use_case_diabetes, use_case_ecn, use_case_hypertension, use_case_obesity, use_case_tobacco
 
-bundle_type_referral = "Referral"
-bundle_type_feedback = "Feedback"
-bundle_type_both = "Both Referral and Feedback"
-use_case_arthritis = "Arthritis"
-use_case_diabetes = "Diabetes Prevention"
-use_case_ecn = "Early Childhood Nutrition"
-use_case_hypertension = "Hypertension"
-use_case_obesity = "Obesity"
-use_case_tobacco = "Tobacco Use Cessation"
+days = 1
 
 def main():
     # USER CLI PROMPTS (Skip to buildBundle() if passing type configuration directly)
@@ -70,7 +58,7 @@ def buildBundles(bundle_type):
     
     config = openConfig()
 
-    core_resource_dict = buildCoreResources(config)
+    core_resource_dict = buildCoreResources(bundle_type["use_case"], config)
     patient_name = getPatientName(core_resource_dict["patient"])
 
     if bundle_type["bundle_type"] == bundle_type_referral:
@@ -87,12 +75,18 @@ def buildBundles(bundle_type):
         writeFile(bundle_type_feedback, feedback_bundle, patient_name)
 
 
-def buildCoreResources(config):
+def buildCoreResources(use_case, config):
     core_resource_dict = {}
     core_resource_dict["patient"] = generatePatient(config["patient"], config["startDate"]) # The Patient helper class provides a means to manage BSER specific considerations of the US Core Patient.
-    core_resource_dict["practitioner"] = get_BSeR_Practitioner()
     core_resource_dict["related_person"] = generateRelatedPersonFromPatient(core_resource_dict["patient"])
-    core_resource_dict["practitioner_role"] = generate_BSeR_ReferralRecipientPractitionerRole(core_resource_dict["practitioner"]["id"])
+    core_resource_dict["initiator_practitioner"] = get_BSeR_Initiator_Practitioner()
+    core_resource_dict["initiator_practitioner_role"] = gen.generate_BSeR_ReferralInitiatorPractitionerRole(core_resource_dict["initiator_practitioner"]["id"])
+    core_resource_dict["recipient_practitioner"] = get_BSeR_Recipient_Practitioner()
+    core_resource_dict["recipient_practitioner_role"] = gen.generate_BSeR_ReferralRecipientPractitionerRole(core_resource_dict["recipient_practitioner"]["id"])
+
+    core_resource_dict["service_request"] = gen.generate_BSeR_ReferralServiceRequest(use_case, core_resource_dict["patient"],
+            core_resource_dict["initiator_practitioner_role"], core_resource_dict["recipient_practitioner_role"], 
+            config["startDate"])
 
     return core_resource_dict
 
@@ -102,10 +96,9 @@ def buildReferralBundle(use_case, core_resource_dict: dict, config) -> dict:
     return None
 
 def buildFeedbackBundle(use_case, core_resource_dict: dict, config) -> dict:
-    days = 1
 
     # Step 1 - Generate Document Bundle
-    document_bundle = generate_BSeR_ReferralFeedbackDocumentBundle()
+    document_bundle = gen.generate_BSeR_ReferralFeedbackDocumentBundle()
     
     # Step 2 - Patient, RelatedPerson, Practitioner, and PractitionerRole
     patient = core_resource_dict["patient"]
@@ -113,24 +106,25 @@ def buildFeedbackBundle(use_case, core_resource_dict: dict, config) -> dict:
     related_person = core_resource_dict["related_person"]
     related_person_id = related_person["id"]
 
-    practitioner = core_resource_dict["practitioner"]
-    practitioner_role = core_resource_dict["practitioner_role"]
-    practitioner_role_id = practitioner_role["id"]
+    initiator_practitioner = core_resource_dict["initiator_practitioner"]
+    initiator_practitioner_role = core_resource_dict["initiator_practitioner_role"]
+    recipient_practitioner = core_resource_dict["recipient_practitioner"]
+    recipient_practitioner_role = core_resource_dict["recipient_practitioner_role"]
+    recipient_practitioner_role_id = recipient_practitioner_role["id"]
 
-    document_bundle = addEntries(document_bundle, [patient, related_person, practitioner, practitioner_role])
+    document_bundle = addEntries(document_bundle, [patient, related_person, recipient_practitioner, recipient_practitioner_role])
     
     # Step 3 - Generate Composition and Task Status resources
-    composition = generate_BSeR_ReferralFeedbackComposition(patient_id, practitioner_role_id, config["startDate"])
-    document_bundle = insertComposition(document_bundle, composition)
+    composition = gen.generate_BSeR_ReferralFeedbackComposition(patient_id, recipient_practitioner_role_id, config["startDate"])
 
-    activity_status = generate_BSeR_ReferralActivityStatus(patient_id, config["startDate"], days)
+    activity_status = gen.generate_BSeR_ReferralActivityStatus(patient_id, config["startDate"], days)
     document_bundle = addEntry(document_bundle, activity_status)
 
-    service_request = None # TODO: IMPLEMENT SERVICE REQUEST
-    payor_organization = None # TODO: IMPLEMENT BSeR ORGANIZATION
-    payor_organization_id = "payor_id_placeholder" #payor_organization["id"]
-    coverage = generate_BSeR_Coverage(related_person_id, patient_id, payor_organization_id)
-
+    payor_organization = gen.generate_BSeR_Organization()
+    payor_organization_id = payor_organization["id"]
+    coverage = gen.generate_BSeR_Coverage(related_person_id, patient_id, payor_organization_id)
+    referral_service_request = None # TODO: IMPLEMENT SERVICE REQUEST
+    document_bundle = addEntries(document_bundle, [payor_organization, coverage, referral_service_request])
 
     # HANDLE USE CASE SPLIT HERE, BUILDING THE BUNDLES
 
@@ -139,12 +133,15 @@ def buildFeedbackBundle(use_case, core_resource_dict: dict, config) -> dict:
     #BSeR_TobaccoUseCessationFeedbackObservation_3 = generate_BSeR_TobaccoUseCessationFeedbackObservation(3, patient_id, start_date, days)
 
     # Step ? - Add Resources to Composition
-    rsrfs_section = generateCompositionSection({"system": CodeSystem_bser_codes, "code": "RSRFS"}, [activity_status], focus_reference=service_request)
+    rsrfs_section = generateCompositionSection({"system": CodeSystem_bser_codes, "code": "RSRFS"}, [activity_status], focus_reference=referral_service_request)
     composition = addSection(composition, rsrfs_section)
+
+    document_bundle = insertComposition(document_bundle, composition)
+
     # Step ? - Add Resources to Bundle
 
     # FINAL - OUTPUT
-    bundle = generate_BSeR_TobaccoUseCessationReferralFeedbackSupportingInformation
+    bundle = gen.generate_BSeR_TobaccoUseCessationReferralFeedbackSupportingInformation
 
     return document_bundle
 

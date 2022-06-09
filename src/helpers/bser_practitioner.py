@@ -1,6 +1,38 @@
 from fhir.resources.practitioner import Practitioner
 
-def get_BSeR_Practitioner() -> dict:
+def get_BSeR_Initiator_Practitioner() -> dict:
+    practitioner = {
+        "resourceType" : "Practitioner",
+        "id" : "bser-practitioner",
+        "meta" : {
+            "profile" : [
+            "http://hl7.org/fhir/us/bser/StructureDefinition/BSeR-Practitioner"
+            ]
+        },
+        "identifier" : [
+            {
+            "system" : "http://hl7.org.fhir/sid/us-npi",
+            "value" : "9987654321"
+            }
+        ],
+        "name" : [
+            {
+            "family" : "Initiator",
+            "given" : [
+                "BSeR"
+            ],
+            "prefix" : [
+                "Dr"
+            ]
+            }
+        ]
+        }
+    
+    practitioner = Practitioner(**practitioner).dict()
+    return practitioner
+
+
+def get_BSeR_Recipient_Practitioner() -> dict:
     practitioner = {
         "resourceType" : "Practitioner",
         "id" : "bser-practitioner",
@@ -17,7 +49,7 @@ def get_BSeR_Practitioner() -> dict:
         ],
         "name" : [
             {
-            "family" : "Generator",
+            "family" : "Recipient",
             "given" : [
                 "BSeR"
             ],
