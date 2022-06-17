@@ -1,0 +1,1 @@
+{"resourceType":"PractitionerRole","id":"6599fea3-bef3-48e8-af12-790c986392fe","meta":{"profile":["http://hl7.org/fhir/us/bser/StructureDefinition/BSeR-ReferralInitiatorPractitionerRole"]},"practitioner":{"reference":"Practitioner/300c58c6-2de0-4da3-84c9-2206859f6ae7"},"organization":{"reference":"Organization/f26e5502-0ae7-4cb4-b92b-5cd62591b9a7"}}

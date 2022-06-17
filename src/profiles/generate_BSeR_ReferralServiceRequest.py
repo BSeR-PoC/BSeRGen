@@ -18,17 +18,16 @@ def generate_BSeR_ReferralServiceRequest(use_case, subject: dict, requester: dic
     service_request["status"] = "active"
     service_request["intent"] = "order"
 
-    service_request["subject"] = createReference(subject)
+    service_request["subject"] = createReference(resource=subject)
     service_request["code"] = __setUseCase(use_case)
 
-    service_request["requester"] = createReference(requester)
-    service_request["performer"] = [createReference(performer)]
+    service_request["requester"] = createReference(resource=requester)
+    service_request["performer"] = [createReference(resource=performer)]
     service_request["occurrenceDateTime"] = parser.parse(start_date)
 
     service_request = ServiceRequest(**service_request).dict()
 
     return service_request
-
 
 
 def __generateInitiatorServiceRequestIdentifier() -> dict:
@@ -46,6 +45,7 @@ def __generateInitiatorServiceRequestIdentifier() -> dict:
 
     identifier = Identifier(**identifier).dict()
     return identifier
+
 
 def __setUseCase(use_case) -> dict:
     codeable_concept = { "text": use_case}

@@ -9,5 +9,4 @@ def createReference(resource_type: str = None, resource_id: str = None, resource
     reference = {"reference": f"{resource_type}/{resource_id}"}
     
     reference = Reference(**reference).dict()
-    
     return reference

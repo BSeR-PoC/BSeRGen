@@ -1,7 +1,7 @@
 from src.helpers.bundle import insertComposition
 import src.generate as gen
 from src.cannonicalUrls import CodeSystem_bser_codes
-from src.helpers.bundle import addEntries, addEntry, insertComposition
+from src.helpers.bundle import addEntries, addEntry, insertComposition, insertMessageHeader
 from src.helpers.composition import generateCompositionSection, addSection
 from src.helpers.patient import generatePatient
 from src.helpers.relatedperson import generateRelatedPersonFromPatient
@@ -9,6 +9,7 @@ import orjson, os, json, inquirer
 from fhirgenerator.helpers.helpers import default
 from src.helpers.bser_practitioner import get_BSeR_Recipient_Practitioner, get_BSeR_Initiator_Practitioner
 from src.constants import bundle_type_referral, bundle_type_feedback, bundle_type_both, use_case_arthritis, use_case_diabetes, use_case_ecn, use_case_hypertension, use_case_obesity, use_case_tobacco
+from fhir.resources.coding import Coding
 
 days = 1
 
@@ -80,20 +81,55 @@ def buildCoreResources(use_case, config):
     core_resource_dict["patient"] = generatePatient(config["patient"], config["startDate"]) # The Patient helper class provides a means to manage BSER specific considerations of the US Core Patient.
     core_resource_dict["related_person"] = generateRelatedPersonFromPatient(core_resource_dict["patient"])
     core_resource_dict["initiator_practitioner"] = get_BSeR_Initiator_Practitioner()
-    core_resource_dict["initiator_practitioner_role"] = gen.generate_BSeR_ReferralInitiatorPractitionerRole(core_resource_dict["initiator_practitioner"]["id"])
+    core_resource_dict["initiator_organization"] = gen.generate_BSeR_Organization()
+    core_resource_dict["initiator_practitioner_role"] = gen.generate_BSeR_ReferralInitiatorPractitionerRole(core_resource_dict["initiator_practitioner"], core_resource_dict["initiator_organization"])
     core_resource_dict["recipient_practitioner"] = get_BSeR_Recipient_Practitioner()
-    core_resource_dict["recipient_practitioner_role"] = gen.generate_BSeR_ReferralRecipientPractitionerRole(core_resource_dict["recipient_practitioner"]["id"])
+    core_resource_dict["recipient_practitioner_role"] = gen.generate_BSeR_ReferralRecipientPractitionerRole(core_resource_dict["recipient_practitioner"])
 
     core_resource_dict["service_request"] = gen.generate_BSeR_ReferralServiceRequest(use_case, core_resource_dict["patient"],
             core_resource_dict["initiator_practitioner_role"], core_resource_dict["recipient_practitioner_role"], 
             config["startDate"])
+    core_resource_dict["referral_task"] = gen.generate_BSeR_ReferralTask(core_resource_dict["service_request"])
 
     return core_resource_dict
 
 
 # TODO: IMPLEMENT REFERRAL BUNDLE
 def buildReferralBundle(use_case, core_resource_dict: dict, config) -> dict:
-    return None
+    
+    # Step 1 - Generate Message Bundle and Message Header
+    message_bundle = gen.generate_BSeR_ReferralMessageBundle()
+    message_header = gen.generate_BSeR_ReferralMessageHeader(
+        core_resource_dict["recipient_practitioner_role"],
+        core_resource_dict["initiator_practitioner_role"],
+        core_resource_dict["referral_task"]
+        )
+    message_bundle = insertMessageHeader(message_bundle, message_header)
+
+    # Step 2 - Add core resources to bundle
+    for key in core_resource_dict:
+        message_bundle = addEntry(message_bundle, core_resource_dict[key])
+
+    # Step 3 - Referral Request Document Bundle and Composition
+    request_document_bundle = gen.generate_BSeR_ReferralRequestDocumentBundle()
+    request_composition = gen.generate_BSeR_ReferralRequestComposition(
+        core_resource_dict["patient"]["id"],
+        core_resource_dict["initiator_practitioner_role"]["id"]
+        )
+
+    # Step 4 - Handle Use Case
+
+    # Step 5 - Complete Supporting Info Bundle
+    # TODO: Add Sections
+    section_coding = { "system" : "http://hl7.org/fhir/us/bser/CodeSystem/bser", "code" : "RSRSI", "display" : "CompositionSectionReferralServiceRequestSupportingInformation"}
+    supporting_info_section = generateCompositionSection(section_coding, []) # TODO: ADD RESOURCES
+    request_composition = addSection(request_composition, supporting_info_section)
+    # TODO: Add Composition to Bundle
+    request_document_bundle = insertComposition(request_document_bundle, request_composition)
+    # TODO: Add bundle to other bundle
+    message_bundle = addEntry(message_bundle, request_document_bundle)
+
+    return message_bundle
 
 def buildFeedbackBundle(use_case, core_resource_dict: dict, config) -> dict:
 

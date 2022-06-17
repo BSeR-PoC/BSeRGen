@@ -3,7 +3,7 @@ from fhir.resources.practitioner import Practitioner
 def get_BSeR_Initiator_Practitioner() -> dict:
     practitioner = {
         "resourceType" : "Practitioner",
-        "id" : "bser-practitioner",
+        "id" : "bser-practitioner-intiator",
         "meta" : {
             "profile" : [
             "http://hl7.org/fhir/us/bser/StructureDefinition/BSeR-Practitioner"
@@ -35,7 +35,7 @@ def get_BSeR_Initiator_Practitioner() -> dict:
 def get_BSeR_Recipient_Practitioner() -> dict:
     practitioner = {
         "resourceType" : "Practitioner",
-        "id" : "bser-practitioner",
+        "id" : "bser-practitioner-recipient",
         "meta" : {
             "profile" : [
             "http://hl7.org/fhir/us/bser/StructureDefinition/BSeR-Practitioner"

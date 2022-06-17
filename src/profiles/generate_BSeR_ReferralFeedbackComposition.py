@@ -4,6 +4,7 @@ from fhir.resources.composition import Composition, CompositionSection
 from src.cannonicalUrls import loinc
 from fhir.resources.coding import Coding
 from fhir.resources.reference import Reference
+from datetime import datetime
 
 def generate_BSeR_ReferralFeedbackComposition(patient_id: str, practitioner_role_id: str, start_date: str) -> dict:
     composition = {}
@@ -22,7 +23,7 @@ def generate_BSeR_ReferralFeedbackComposition(patient_id: str, practitioner_role
     composition["type"]["coding"] = []
     composition["type"]["coding"].append({ "system": loinc, "code": "57133-1", "display": "Referral note"})
 
-    composition["date"] = makeRandomDate(start_date, 1)
+    composition["date"] = str(datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000+00:00"))
 
     composition = Composition(**composition).dict()
     return composition

@@ -1,24 +1,20 @@
 import uuid
-from fhir.resources.practitionerrole import PractitionerRole
-from fhir.resources.reference import Reference
+from src.helpers.reference import createReference
+from bser.BSeR_ReferralInitiatorPractitionerRole import BSeR_ReferralInitiatorPractitionerRole
 
-def generate_BSeR_ReferralInitiatorPractitionerRole(practitioner_id: str = None,
-                                                    organization_id: str = None,
-                                                    location_id: str = None) -> dict:
+def generate_BSeR_ReferralInitiatorPractitionerRole(practitioner: dict,
+                                                    organization: dict,
+                                                    location: dict = None) -> dict:
     practitioner_role = {}
     practitioner_role["resourceType"] = "PractitionerRole"
     
     practitioner_role["id"] = str(uuid.uuid4())
-    practitioner_role["meta"] = {}
-    practitioner_role["meta"]["profile"] = [ "http://hl7.org/fhir/us/bser/StructureDefinition/BSeR-ReferralInitiatorPractitionerRole" ]
-    
-    if practitioner_id is not None:
-        practitioner_reference = { "reference": f"Practitioner/{practitioner_id}"}
-        practitioner_reference = Reference(**practitioner_reference).dict()
-        practitioner_role["practitioner"] = practitioner_reference
 
-    # TODO: Implement Organization and Location
+    practitioner_role["practitioner"] = createReference(resource=practitioner)
+    practitioner_role["organization"] = createReference(resource=organization)
+    if location is not None:
+        practitioner_role["location"] = [createReference(resource=location)]
 
-    practitioner_role = PractitionerRole(**practitioner_role).dict()
+    practitioner_role = BSeR_ReferralInitiatorPractitionerRole(**practitioner_role).dict()
     return practitioner_role
 
