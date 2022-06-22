@@ -1,0 +1,1 @@
+{"resourceType":"Location","id":"8418a198-004e-4655-8dd3-4fe32eff2a53","meta":{"profile":["http://hl7.org/fhir/us/bser/StructureDefinition/BSeR-ServiceDeliveryLocation"]},"status":"active","name":"Anderson-Foster","telecom":[{"value":"9929191499","use":"home"}],"address":{"use":"work","line":["9373 Robert Underpass"],"city":"Elizabethhaven","state":"VT","postalCode":"34808"}}
