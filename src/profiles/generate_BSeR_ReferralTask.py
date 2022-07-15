@@ -4,7 +4,7 @@ from datetime import datetime
 
 from src.helpers.reference import createReference
 
-def generate_BSeR_ReferralTask(service_request: dict) -> dict:
+def generate_BSeR_ReferralTask(service_request: dict, patient: dict) -> dict:
     task = {}
     task["resourceType"] = "Task"
     task["id"] = str(uuid.uuid4())
@@ -25,6 +25,8 @@ def generate_BSeR_ReferralTask(service_request: dict) -> dict:
     task["intent"] = "order"
     task["focus"] = createReference(resource=service_request)
     task["authoredOn"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.000+00:00")
+
+    task["for"] = createReference(resource=patient)
 
     task["requester"] = service_request["requester"]
     task["owner"] = service_request["performer"][0]

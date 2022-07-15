@@ -89,7 +89,7 @@ def buildCoreResources(use_case, config):
     core_resource_dict["service_request"] = gen.generate_BSeR_ReferralServiceRequest(use_case, core_resource_dict["patient"],
             core_resource_dict["initiator_practitioner_role"], core_resource_dict["recipient_practitioner_role"], 
             config["startDate"])
-    core_resource_dict["referral_task"] = gen.generate_BSeR_ReferralTask(core_resource_dict["service_request"])
+    core_resource_dict["referral_task"] = gen.generate_BSeR_ReferralTask(core_resource_dict["service_request"], core_resource_dict["patient"])
 
     return core_resource_dict
 

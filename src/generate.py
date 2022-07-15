@@ -1,3 +1,4 @@
+from src.profiles.generate_BSeR_ArthritisReferralSupportingInformation import generate_BSeR_ArthritisReferralSupportingInformation
 from src.profiles.generate_BSeR_Coverage import generate_BSeR_Coverage
 from src.profiles.generate_BSeR_EducationLevel import generate_BSeR_EducationLevel
 from src.profiles.generate_BSeR_Organization import generate_BSeR_Organization
